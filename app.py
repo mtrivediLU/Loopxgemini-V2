@@ -85,43 +85,85 @@ def generate_pdf(file_path, details_list, image_paths):
     elements = []
     styles = getSampleStyleSheet()
 
-    title = "Incident Report"
+    # Add the logo
+    logo_path = 'static/logo.jpg'
+    if os.path.exists(logo_path):
+        logo = Image(logo_path, 2 * inch, 2 * inch)
+        logo.hAlign = 'LEFT'
+        elements.append(logo)
+
+    title = "Safety Report"
     elements.append(Paragraph(title, styles['Title']))
     elements.append(Spacer(1, 12))
 
     for i, (details, image_path) in enumerate(zip(details_list, image_paths)):
-        img = Image(os.path.join('static', image_path))
-        img.drawHeight = 2 * inch
-        img.drawWidth = 2 * inch
-        img.hAlign = 'CENTER'
+        elements.append(Paragraph(f"Report ID: SR{i+1}", styles['Heading2']))
+        elements.append(Spacer(1, 12))
+
+        elements.append(Paragraph("1. Incident Details", styles['Heading2']))
+        elements.append(Spacer(1, 12))
 
         data = [
-            ['Degree:', wrap_text(details['degree'], 4 * inch)],
-            ['Incident:', wrap_text(details['incident'], 4 * inch)],
-            ['Number of People:', wrap_text(details['num_people'], 4 * inch)],
-            ['Speed:', wrap_text(details['speed'], 4 * inch)],
-            ['Time:', wrap_text(details['time'], 4 * inch)],
-            ['Full Description:', wrap_text(details['full_description'], 4 * inch)]
+            ['Incident ID:', f'SI{i+1}'],
+            ['Date/Time:', 'Insert date and time'],
+            ['Location:', 'Rainy River Underground Mine Level 200 Drift 1'],
+            ['Incident Type:', 'Vehicle to Vehicle']
         ]
-
         table = Table(data, colWidths=[2 * inch, 4 * inch])
         table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (1, 0), colors.grey),
-            ('TEXTCOLOR', (0, 0), (1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
         ]))
-
-        elements.append(Paragraph(f"Image {i+1}", styles['Heading2']))
-        elements.append(img)
-        elements.append(Spacer(1, 12))
         elements.append(table)
         elements.append(Spacer(1, 12))
 
+        elements.append(Paragraph("2. Incident Description", styles['Heading2']))
+        elements.append(Spacer(1, 12))
+        elements.append(Paragraph("Brief Description:", styles['Heading3']))
+        elements.append(Paragraph(details['incident'], styles['BodyText']))
+        elements.append(Spacer(1, 12))
+
+        elements.append(Paragraph("3. Personnel Involved", styles['Heading2']))
+        elements.append(Spacer(1, 12))
+        elements.append(Paragraph("Number of Personnel Involved:", styles['Heading3']))
+        elements.append(Paragraph(details['num_people'], styles['BodyText']))
+        elements.append(Spacer(1, 12))
+
+        elements.append(Paragraph("4. Equipment Involved", styles['Heading2']))
+        elements.append(Spacer(1, 12))
+        data = [
+            ['List of Equipment:', 'AD30 Dump Truck'],
+            ['Drive Mode:', 'Drive'],
+            ['Speed:', details['speed']]
+        ]
+        table = Table(data, colWidths=[2 * inch, 4 * inch])
+        table.setStyle(TableStyle([
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+        ]))
+        elements.append(table)
+        elements.append(Spacer(1, 12))
+
+        elements.append(Paragraph("5. Analysis of the Incident", styles['Heading2']))
+        elements.append(Spacer(1, 12))
+        elements.append(Paragraph("Potential Causes:", styles['Heading3']))
+        elements.append(Paragraph(details['full_description'], styles['BodyText']))
+        elements.append(Spacer(1, 12))
+
+        elements.append(Paragraph("6. Photographic Evidence", styles['Heading2']))
+        elements.append(Spacer(1, 12))
+        if os.path.exists(os.path.join('static', image_path)):
+            img = Image(os.path.join('static', image_path), 3 * inch, 3 * inch)
+            img.hAlign = 'CENTER'
+            elements.append(img)
+            elements.append(Spacer(1, 12))
+        else:
+            elements.append(Paragraph("Image not available", styles['BodyText']))
+            elements.append(Spacer(1, 12))
+
     doc.build(elements)
+
+def wrap_text(text, width):
+    wrapped_text = "<br/>".join(simpleSplit(text, 'Helvetica', 12, width))
+    return Paragraph(wrapped_text, getSampleStyleSheet()['BodyText'])
 
 def wrap_text(text, width):
     wrapped_text = "<br/>".join(simpleSplit(text, 'Helvetica', 12, width))
